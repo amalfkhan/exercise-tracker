@@ -72,6 +72,33 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   );
 });
 
+app.get('/api/users/:_id/logs', (req, res) => {
+  User.findById(req.params._id, (err, data) => {
+    var resObj = {
+      _id: data._id,
+      username: data.username,
+      log: data.log,
+      count: data.log.length
+    }
+
+    if(req.query.from && req.query.to) {
+      const start = new Date(req.query.from);
+      const end = new Date(req.query.to);
+      const filteredLog = resObj.log.filter(entry => { return entry.date >= start && entry.date <= end });
+      resObj.log = filteredLog;
+      resObj.count = filteredLog.length;
+    }
+
+    if(req.query.limit) {
+      const truncatedLog = resObj.log.slice(0, req.query.limit);
+      resObj.log = truncatedLog;
+      resObj.count = truncatedLog.length;
+    }
+
+    res.json(resObj);
+  });
+});
+
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
